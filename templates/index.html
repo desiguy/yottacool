@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idea Ranker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Rank Your Idea</h1>
+    <form action="/add_idea" method="POST">
+        <div>
+            <label for="description">Idea Description:</label><br>
+            <textarea id="description" name="description" rows="4" cols="50" required></textarea><br>
+        </div>
+        <div>
+            <label for="feasibility">Feasibility Score (1-10):</label><br>
+            <input type="number" id="feasibility" name="feasibility" min="1" max="10" required><br>
+        </div>
+        <div>
+            <label for="impact">Impact Score (1-10):</label><br>
+            <input type="number" id="impact" name="impact" min="1" max="10" required><br>
+        </div>
+        <div>
+            <input type="submit" value="Add Idea">
+        </div>
+    </form>
+
+    <hr>
+    <h2>Ideas List</h2>
+    {% if ideas %}
+        <ul>
+            {% for idea in ideas %}
+                <li>
+                    <strong>Description:</strong> {{ idea.description }}<br>
+                    <strong>Feasibility:</strong> {{ idea.feasibility }}/10<br>
+                    <strong>Impact:</strong> {{ idea.impact }}/10
+                </li>
+                <br>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No ideas submitted yet. Add one above!</p>
+    {% endif %}
+
+    <hr>
+    <h2>Idea Quadrants</h2>
+    <div class="quadrant-container">
+        <div class="quadrant" id="hi_lf"> <!-- High Impact, Low Feasibility -->
+            <h3>High Impact / Low Feasibility</h3>
+            <ul>
+                {% for idea in hi_lf %}
+                    <li>{{ idea.description }}</li>
+                {% else %}
+                    <li><em>No ideas in this quadrant.</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="quadrant" id="hi_hf"> <!-- High Impact, High Feasibility -->
+            <h3>High Impact / High Feasibility</h3>
+            <ul>
+                {% for idea in hi_hf %}
+                    <li>{{ idea.description }}</li>
+                {% else %}
+                    <li><em>No ideas in this quadrant.</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="quadrant" id="li_lf"> <!-- Low Impact, Low Feasibility -->
+            <h3>Low Impact / Low Feasibility</h3>
+            <ul>
+                {% for idea in li_lf %}
+                    <li>{{ idea.description }}</li>
+                {% else %}
+                    <li><em>No ideas in this quadrant.</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="quadrant" id="li_hf"> <!-- Low Impact, High Feasibility -->
+            <h3>Low Impact / High Feasibility</h3>
+            <ul>
+                {% for idea in li_hf %}
+                    <li>{{ idea.description }}</li>
+                {% else %}
+                    <li><em>No ideas in this quadrant.</em></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

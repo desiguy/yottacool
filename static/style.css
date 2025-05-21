@@ -1,0 +1,121 @@
+body {
+    font-family: sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1, h2, h3 {
+    color: #333;
+}
+
+.container { /* Optional: A main container for the whole page content */
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+form div {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+    width: 90%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; /* Important for width calculation */
+}
+
+textarea {
+    resize: vertical;
+}
+
+input[type="submit"] {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 30px 0;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul li {
+    background-color: #e9ecef;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+}
+
+/* Quadrant Styling */
+.quadrant-container {
+    display: flex;
+    flex-wrap: wrap; /* Allows items to wrap to the next line if not enough space */
+    width: 100%; /* Or a fixed width like 800px */
+    margin: 20px auto; /* Center it if fixed width */
+    border: 2px solid #666; /* Border around the whole container */
+}
+
+.quadrant {
+    width: 50%; /* Each quadrant takes up half the width */
+    min-height: 200px; /* Minimum height for each quadrant */
+    padding: 15px;
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    border: 1px solid #ccc; /* Border for each quadrant */
+}
+
+.quadrant h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 5px;
+}
+
+/* Specific Quadrant Colors (Optional, but helpful for visualization) */
+#hi_hf { background-color: #d4edda; /* Greenish - e.g., Go for it! */ }
+#hi_lf { background-color: #fff3cd; /* Yellowish - e.g., High potential, needs work */ }
+#li_hf { background-color: #f8d7da; /* Reddish - e.g., Low hanging fruit, quick wins? */ }
+#li_lf { background-color: #e2e3e5; /* Greyish - e.g., Reconsider or de-prioritize */ }
+
+/* Ensure consistent list styling within quadrants */
+.quadrant ul {
+    padding-left: 0; /* Reset padding if needed */
+}
+
+.quadrant ul li {
+    background-color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for items */
+    border: 1px solid #bbb;
+}
+
+/* Responsive adjustments for smaller screens (optional) */
+@media (max-width: 768px) {
+    .quadrant {
+        width: 100%; /* Stack quadrants vertically on smaller screens */
+        min-height: auto; /* Adjust height as needed */
+    }
+}
