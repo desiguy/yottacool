@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Business Card Studio</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- QRCode.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          boxShadow: {
+            'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+            'card-glow': '0 0 25px -5px rgba(59, 130, 246, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    /* Flip animation for card preview optional preview back side */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+    
+    /* Card theme gradients */
+    .theme-midnight { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); }
+    .theme-ocean { background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0f172a 100%); }
+    .theme-emerald { background: linear-gradient(135deg, #059669 0%, #047857 50%, #064e3b 100%); }
+    .theme-sunset { background: linear-gradient(135deg, #e11d48 0%, #9333ea 50%, #4338ca 100%); }
+    .theme-luxury { background: linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%); }
+    .theme-minimal { background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); color: #0f172a; }
+  </style>
+</head>
+
+<body class="h-full font-sans antialiased bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="p-2 bg-blue-600/20 text-blue-400 rounded-xl border border-blue-500/30">
+          <i data-lucide="contact-round" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">
+            CardStudio Pro
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Digital Business Card Generator & Exporter</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button id="reset-btn" onclick="resetForm()" class="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-1.5 border border-slate-700/60">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> Reset Form
+        </button>
+        <button onclick="openHelpModal()" class="p-2 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700 rounded-lg transition border border-slate-700/60" title="How to save on iPhone">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: Input Form Section (7 cols on lg) -->
+      <div class="lg:col-span-7 bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 sm:p-7 backdrop-blur-sm shadow-xl space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i data-lucide="user-plus" class="w-5 h-5 text-blue-400"></i> Card Details
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Fill in the fields below. The card preview on the right updates instantly.</p>
+        </div>
+
+        <form id="card-form" onsubmit="event.preventDefault();" class="space-y-6">
+          
+          <!-- Theme & Accent Selection -->
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-300 uppercase tracking-wider block">Visual Theme</label>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              <button type="button" onclick="setTheme('midnight')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition active-theme" data-theme="midnight">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 border border-slate-500"></span>
+                <span class="text-[10px] text-slate-300">Midnight</span>
+              </button>
+              <button type="button" onclick="setTheme('ocean')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition" data-theme="ocean">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-sky-400 to-blue-700"></span>
+                <span class="text-[10px] text-slate-300">Ocean</span>
+              </button>
+              <button type="button" onclick="setTheme('emerald')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition" data-theme="emerald">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-emerald-400 to-teal-800"></span>
+                <span class="text-[10px] text-slate-300">Emerald</span>
+              </button>
+              <button type="button" onclick="setTheme('sunset')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition" data-theme="sunset">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-rose-500 to-purple-700"></span>
+                <span class="text-[10px] text-slate-300">Sunset</span>
+              </button>
+              <button type="button" onclick="setTheme('luxury')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition" data-theme="luxury">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-stone-600 to-stone-900"></span>
+                <span class="text-[10px] text-slate-300">Luxury</span>
+              </button>
+              <button type="button" onclick="setTheme('minimal')" class="theme-option p-2 rounded-xl border border-slate-700 bg-slate-900 flex flex-col items-center justify-center gap-1 hover:border-blue-500 transition" data-theme="minimal">
+                <span class="w-5 h-5 rounded-full bg-gradient-to-br from-slate-100 to-slate-300 border border-slate-400"></span>
+                <span class="text-[10px] text-slate-300">Clean</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Basic Info Section -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-1">Personal Details</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="fullName" class="block text-xs font-medium text-slate-300 mb-1">Full Name *</label>
+                <div class="relative">
+                  <input type="text" id="fullName" placeholder="e.g. Alex Morgan" value="Alex Morgan" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+              </div>
+
+              <div>
+                <label for="jobTitle" class="block text-xs font-medium text-slate-300 mb-1">Job Title / Position</label>
+                <input type="text" id="jobTitle" placeholder="e.g. Chief Product Architect" value="Senior Product Designer" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="company" class="block text-xs font-medium text-slate-300 mb-1">Company / Organization</label>
+                <input type="text" id="company" placeholder="e.g. Apex Innovations Inc." value="Apex Design Labs" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+              </div>
+
+              <div>
+                <label for="avatarUrl" class="block text-xs font-medium text-slate-300 mb-1">Photo / Avatar URL or File</label>
+                <div class="flex gap-2">
+                  <input type="text" id="avatarUrl" placeholder="Image URL or upload ->" value="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                  <label class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl cursor-pointer transition text-xs font-medium flex items-center justify-center shrink-0 border border-slate-700">
+                    <i data-lucide="upload" class="w-4 h-4"></i>
+                    <input type="file" id="avatarFile" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Details Section -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-1">Contact Details</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="cellPhone" class="block text-xs font-medium text-slate-300 mb-1">Cell Phone (Mobile) *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><i data-lucide="smartphone" class="w-4 h-4"></i></span>
+                  <input type="tel" id="cellPhone" placeholder="+1 (555) 019-2834" value="+1 (555) 234-5678" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+              </div>
+
+              <div>
+                <label for="workPhone" class="block text-xs font-medium text-slate-300 mb-1">Work Phone</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><i data-lucide="building-2" class="w-4 h-4"></i></span>
+                  <input type="tel" id="workPhone" placeholder="+1 (555) 890-1234" value="+1 (555) 987-6543" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="email" class="block text-xs font-medium text-slate-300 mb-1">Email Address *</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><i data-lucide="mail" class="w-4 h-4"></i></span>
+                  <input type="email" id="email" placeholder="alex@example.com" value="alex.morgan@example.com" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+              </div>
+
+              <div>
+                <label for="website" class="block text-xs font-medium text-slate-300 mb-1">Website URL</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><i data-lucide="globe" class="w-4 h-4"></i></span>
+                  <input type="url" id="website" placeholder="https://yourwebsite.com" value="https://alexmorgan.design" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label for="address" class="block text-xs font-medium text-slate-300 mb-1">Physical Address</label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-500"><i data-lucide="map-pin" class="w-4 h-4"></i></span>
+                <input type="text" id="address" placeholder="123 Market St, San Francisco, CA" value="Market St, San Francisco, CA 94103" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition">
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Links Section -->
+          <div class="space-y-4">
+            <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800 pb-1">Social Profiles</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label for="linkedin" class="block text-[11px] font-medium text-slate-400 mb-1">LinkedIn Username</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-500"><i data-lucide="linkedin" class="w-3.5 h-3.5"></i></span>
+                  <input type="text" id="linkedin" placeholder="alex-morgan" value="alexmorgan" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-2.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+              </div>
+
+              <div>
+                <label for="twitter" class="block text-[11px] font-medium text-slate-400 mb-1">X / Twitter handle</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-500"><i data-lucide="twitter" class="w-3.5 h-3.5"></i></span>
+                  <input type="text" id="twitter" placeholder="alex_morgan" value="alexmorgan_ui" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-2.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+              </div>
+
+              <div>
+                <label for="github" class="block text-[11px] font-medium text-slate-400 mb-1">GitHub Username</label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 flex items-center pl-2.5 pointer-events-none text-slate-500"><i data-lucide="github" class="w-3.5 h-3.5"></i></span>
+                  <input type="text" id="github" placeholder="alexmorgan" value="alexmorgan" oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-8 pr-2.5 py-2 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bio / Short Tagline -->
+          <div>
+            <label for="tagline" class="block text-xs font-medium text-slate-300 mb-1">Short Tagline / Bio</label>
+            <textarea id="tagline" rows="2" placeholder="Building elegant software & digital experiences." oninput="updateCard()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition resize-none">Building digital products that people love. Crafting systems & UI/UX.</textarea>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- RIGHT COLUMN: Interactive Live Card Preview & Actions (5 cols on lg) -->
+      <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+        
+        <!-- Live Card Container -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              Live Card Preview
+            </span>
+            <span id="card-type-tag" class="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
+              vCard 3.0 Compatible
+            </span>
+          </div>
+
+          <!-- The Digital Business Card UI -->
+          <div id="card-element" class="theme-midnight rounded-3xl p-6 sm:p-7 shadow-glass border border-white/10 transition-all duration-300 relative overflow-hidden text-white flex flex-col justify-between min-h-[420px] max-w-sm mx-auto w-full group">
+            
+            <!-- Glassmorphism accent highlight overlay -->
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-500/20 rounded-full blur-2xl pointer-events-none"></div>
+
+            <!-- Top Header Details -->
+            <div class="relative z-10 space-y-5">
+              <div class="flex items-start justify-between gap-4">
+                <!-- Avatar photo -->
+                <div class="relative shrink-0">
+                  <img id="card-preview-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80" alt="Avatar" class="w-20 h-20 rounded-2xl object-cover border-2 border-white/20 shadow-md bg-slate-800" onerror="this.src='https://placehold.co/200x200/1e293b/ffffff?text=Avatar'">
+                  <div class="absolute -bottom-1 -right-1 bg-emerald-500 border-2 border-slate-900 w-4 h-4 rounded-full" title="Active Contact"></div>
+                </div>
+
+                <!-- Company Logo or Icon -->
+                <div class="text-right">
+                  <p id="card-preview-company" class="text-xs font-semibold uppercase tracking-wider opacity-80 max-w-[140px] truncate">
+                    Apex Design Labs
+                  </p>
+                  <div class="inline-block px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-md text-[10px] font-medium mt-1 border border-white/10">
+                    <span id="card-preview-role-tag">Design & Tech</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Name & Role -->
+              <div class="space-y-1">
+                <h3 id="card-preview-name" class="text-2xl font-extrabold tracking-tight leading-tight">
+                  Alex Morgan
+                </h3>
+                <p id="card-preview-title" class="text-sm opacity-90 font-medium">
+                  Senior Product Designer
+                </p>
+                <p id="card-preview-tagline" class="text-xs opacity-75 pt-1 font-normal line-clamp-2 leading-relaxed">
+                  Building digital products that people love. Crafting systems & UI/UX.
+                </p>
+              </div>
+            </div>
+
+            <!-- Interactive Direct Quick Actions Bar -->
+            <div class="relative z-10 py-4 my-2 border-y border-white/10 grid grid-cols-5 gap-1.5 text-center">
+              <a id="action-cell" href="tel:+15552345678" class="flex flex-col items-center gap-1 group/btn p-1.5 rounded-xl hover:bg-white/10 transition">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/btn:scale-110 group-hover/btn:bg-blue-500 transition">
+                  <i data-lucide="smartphone" class="w-4 h-4"></i>
+                </div>
+                <span class="text-[9px] font-medium opacity-80">Mobile</span>
+              </a>
+
+              <a id="action-work" href="tel:+15559876543" class="flex flex-col items-center gap-1 group/btn p-1.5 rounded-xl hover:bg-white/10 transition">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/btn:scale-110 group-hover/btn:bg-indigo-500 transition">
+                  <i data-lucide="building-2" class="w-4 h-4"></i>
+                </div>
+                <span class="text-[9px] font-medium opacity-80">Work</span>
+              </a>
+
+              <a id="action-email" href="mailto:alex.morgan@example.com" class="flex flex-col items-center gap-1 group/btn p-1.5 rounded-xl hover:bg-white/10 transition">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/btn:scale-110 group-hover/btn:bg-emerald-500 transition">
+                  <i data-lucide="mail" class="w-4 h-4"></i>
+                </div>
+                <span class="text-[9px] font-medium opacity-80">Email</span>
+              </a>
+
+              <a id="action-website" href="https://alexmorgan.design" target="_blank" rel="noopener" class="flex flex-col items-center gap-1 group/btn p-1.5 rounded-xl hover:bg-white/10 transition">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/btn:scale-110 group-hover/btn:bg-purple-500 transition">
+                  <i data-lucide="globe" class="w-4 h-4"></i>
+                </div>
+                <span class="text-[9px] font-medium opacity-80">Website</span>
+              </a>
+
+              <a id="action-map" href="https://maps.google.com/?q=Market+St,+San+Francisco,+CA" target="_blank" rel="noopener" class="flex flex-col items-center gap-1 group/btn p-1.5 rounded-xl hover:bg-white/10 transition">
+                <div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover/btn:scale-110 group-hover/btn:bg-rose-500 transition">
+                  <i data-lucide="map-pin" class="w-4 h-4"></i>
+                </div>
+                <span class="text-[9px] font-medium opacity-80">Map</span>
+              </a>
+            </div>
+
+            <!-- Card Bottom Info & Social Icons -->
+            <div class="relative z-10 flex items-center justify-between text-xs opacity-80 pt-1">
+              <div id="card-socials-container" class="flex items-center gap-3">
+                <a id="card-preview-linkedin" href="https://linkedin.com/in/alexmorgan" target="_blank" class="hover:opacity-100 hover:scale-110 transition" title="LinkedIn">
+                  <i data-lucide="linkedin" class="w-4 h-4"></i>
+                </a>
+                <a id="card-preview-twitter" href="https://x.com/alexmorgan_ui" target="_blank" class="hover:opacity-100 hover:scale-110 transition" title="Twitter/X">
+                  <i data-lucide="twitter" class="w-4 h-4"></i>
+                </a>
+                <a id="card-preview-github" href="https://github.com/alexmorgan" target="_blank" class="hover:opacity-100 hover:scale-110 transition" title="GitHub">
+                  <i data-lucide="github" class="w-4 h-4"></i>
+                </a>
+              </div>
+
+              <span class="text-[10px] opacity-60 font-mono tracking-wider">TAP TO ACTION</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Primary Share & Save Actions Panel -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-5 backdrop-blur-sm space-y-3">
+          <h3 class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Export & Save Options</h3>
+          
+          <!-- Primary iOS Contact vCard Button -->
+          <button onclick="downloadVCard()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2.5 transition transform active:scale-[0.98]">
+            <i data-lucide="arrow-down-to-line" class="w-5 h-5"></i>
+            <span>Save Contact to iPhone / Phone (.vcf)</span>
+          </button>
+
+          <!-- Grid of Secondary Actions -->
+          <div class="grid grid-cols-2 gap-2.5 pt-1">
+            
+            <button onclick="openQRModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200 text-xs font-medium py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition">
+              <i data-lucide="qr-code" class="w-4 h-4 text-purple-400"></i>
+              <span>Show QR Code</span>
+            </button>
+
+            <button onclick="shareNativeCard()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200 text-xs font-medium py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition">
+              <i data-lucide="share-2" class="w-4 h-4 text-emerald-400"></i>
+              <span>Share Card</span>
+            </button>
+
+            <button onclick="emailCardSummary()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200 text-xs font-medium py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition">
+              <i data-lucide="mail" class="w-4 h-4 text-sky-400"></i>
+              <span>Email Card</span>
+            </button>
+
+            <button onclick="openHelpModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700/60 text-slate-200 text-xs font-medium py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition">
+              <i data-lucide="wallet" class="w-4 h-4 text-amber-400"></i>
+              <span>Apple Wallet Info</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-800/80 py-6 bg-slate-950 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      <p>Digital Business Card Generator • Universal iOS vCard 3.0 & Web Compatible</p>
+    </div>
+  </footer>
+
+  <!-- MODAL 1: QR CODE DISPLAY MODAL -->
+  <div id="qr-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl relative transform scale-95 transition-transform duration-200" id="qr-modal-content">
+      <button onclick="closeQRModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full bg-slate-800 hover:bg-slate-700 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div>
+        <h3 class="text-lg font-bold text-white">Scan Contact QR</h3>
+        <p class="text-xs text-slate-400 mt-1">Scan with iPhone Camera or Android scanner to import contact instantly.</p>
+      </div>
+
+      <!-- QR Code Canvas Container -->
+      <div class="bg-white p-4 rounded-2xl shadow-inner inline-block mx-auto border-4 border-slate-800">
+        <div id="qrcode-canvas" class="flex justify-center"></div>
+      </div>
+
+      <p id="qr-name-label" class="text-sm font-semibold text-slate-200">Alex Morgan</p>
+
+      <div class="pt-2">
+        <button onclick="closeQRModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium py-2.5 rounded-xl text-xs transition border border-slate-700">
+          Close Window
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: IPHONE & WALLET GUIDE MODAL -->
+  <div id="help-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full space-y-5 shadow-2xl relative">
+      <button onclick="closeHelpModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full bg-slate-800 hover:bg-slate-700 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-blue-500/20 text-blue-400 rounded-xl">
+          <i data-lucide="smartphone" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">How to Save on iPhone</h3>
+          <p class="text-xs text-slate-400">Instructions for Contacts & Apple Wallet</p>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-xs text-slate-300">
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 space-y-2">
+          <h4 class="font-bold text-blue-400 flex items-center gap-1.5">
+            <i data-lucide="user-check" class="w-4 h-4"></i> 1. Save directly to iOS Contacts
+          </h4>
+          <ol class="list-decimal list-inside space-y-1 pl-1 text-slate-400">
+            <li>Tap the <strong class="text-white">"Save Contact to iPhone (.vcf)"</strong> button.</li>
+            <li>In Safari, tap <strong class="text-white">Download</strong> or tap the downloaded file link.</li>
+            <li>Your iPhone will prompt <strong class="text-white">"Add to Contacts"</strong> or open the contact modal.</li>
+            <li>Tap <strong class="text-white">Save / Done</strong> in the top right corner.</li>
+          </ol>
+        </div>
+
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800/80 space-y-2">
+          <h4 class="font-bold text-amber-400 flex items-center gap-1.5">
+            <i data-lucide="wallet" class="w-4 h-4"></i> 2. Apple Wallet Pass (.pkpass)
+          </h4>
+          <p class="text-slate-400 leading-relaxed">
+            Native `.pkpass` files require cryptographic signing with an Apple Developer certificate. To convert this digital business card into an official Apple Wallet Pass:
+          </p>
+          <ul class="list-disc list-inside text-slate-400 space-y-1 pl-1">
+            <li>Download your <strong class="text-white">.vcf file</strong> generated above.</li>
+            <li>Upload it to standard free pass generators (like Pass2U or PassKit).</li>
+            <li>It will instantly generate a barcode or wallet pass for native Apple Wallet!</li>
+          </ul>
+        </div>
+      </div>
+
+      <button onclick="closeHelpModal()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-xl text-xs transition shadow-md">
+        Got it, Thanks!
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 bg-slate-800 border border-slate-700 text-slate-100 text-xs font-medium px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400" id="toast-icon"></i>
+    <span id="toast-msg">Notification message</span>
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Default or Current Active Card Theme
+    let currentTheme = 'midnight';
+
+    // Image Upload Handler
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          document.getElementById('avatarUrl').value = evt.target.result;
+          updateCard();
+          showToast('Profile image updated!');
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Theme Switcher Function
+    function setTheme(theme) {
+      currentTheme = theme;
+      const cardEl = document.getElementById('card-element');
+      
+      // Remove previous theme classes
+      cardEl.classList.remove('theme-midnight', 'theme-ocean', 'theme-emerald', 'theme-sunset', 'theme-luxury', 'theme-minimal');
+      
+      // Add selected theme
+      cardEl.classList.add(`theme-${theme}`);
+
+      // Highlight selected theme button UI
+      document.querySelectorAll('.theme-option').forEach(btn => {
+        if (btn.dataset.theme === theme) {
+          btn.classList.add('border-blue-500', 'ring-1', 'ring-blue-500');
+        } else {
+          btn.classList.remove('border-blue-500', 'ring-1', 'ring-blue-500');
+        }
+      });
+    }
+
+    // Live Update Function - Sync Form Inputs with Card UI
+    function updateCard() {
+      // Gather Values
+      const name = document.getElementById('fullName').value || 'Your Name';
+      const title = document.getElementById('jobTitle').value || 'Job Title';
+      const company = document.getElementById('company').value || 'Company Name';
+      const cellPhone = document.getElementById('cellPhone').value || '';
+      const workPhone = document.getElementById('workPhone').value || '';
+      const email = document.getElementById('email').value || '';
+      const website = document.getElementById('website').value || '';
+      const address = document.getElementById('address').value || '';
+      const tagline = document.getElementById('tagline').value || '';
+      const avatarUrl = document.getElementById('avatarUrl').value || 'https://placehold.co/200x200/1e293b/ffffff?text=Avatar';
+
+      const linkedin = document.getElementById('linkedin').value;
+      const twitter = document.getElementById('twitter').value;
+      const github = document.getElementById('github').value;
+
+      // Update Text Elements
+      document.getElementById('card-preview-name').innerText = name;
+      document.getElementById('card-preview-title').innerText = title;
+      document.getElementById('card-preview-company').innerText = company;
+      document.getElementById('card-preview-tagline').innerText = tagline;
+      document.getElementById('card-preview-avatar').src = avatarUrl;
+      document.getElementById('card-preview-role-tag').innerText = company ? company.split(' ')[0] : 'Contact';
+
+      // Update Action Links
+      document.getElementById('action-cell').href = cellPhone ? `tel:${cellPhone.replace(/\s+/g, '')}` : 'javascript:void(0)';
+      document.getElementById('action-work').href = workPhone ? `tel:${workPhone.replace(/\s+/g, '')}` : 'javascript:void(0)';
+      document.getElementById('action-email').href = email ? `mailto:${email}` : 'javascript:void(0)';
+      
+      let formattedWeb = website;
+      if (website && !website.startsWith('http://') && !website.startsWith('https://')) {
+        formattedWeb = `https://${website}`;
+      }
+      document.getElementById('action-website').href = formattedWeb || 'javascript:void(0)';
+      
+      document.getElementById('action-map').href = address ? `https://maps.google.com/?q=${encodeURIComponent(address)}` : 'javascript:void(0)';
+
+      // Social Links Updates
+      const linkedinEl = document.getElementById('card-preview-linkedin');
+      const twitterEl = document.getElementById('card-preview-twitter');
+      const githubEl = document.getElementById('card-preview-github');
+
+      if (linkedin) {
+        linkedinEl.style.display = 'inline-block';
+        linkedinEl.href = linkedin.startsWith('http') ? linkedin : `https://linkedin.com/in/${linkedin}`;
+      } else {
+        linkedinEl.style.display = 'none';
+      }
+
+      if (twitter) {
+        twitterEl.style.display = 'inline-block';
+        twitterEl.href = twitter.startsWith('http') ? twitter : `https://x.com/${twitter.replace('@', '')}`;
+      } else {
+        twitterEl.style.display = 'none';
+      }
+
+      if (github) {
+        githubEl.style.display = 'inline-block';
+        githubEl.href = github.startsWith('http') ? github : `https://github.com/${github.replace('@', '')}`;
+      } else {
+        githubEl.style.display = 'none';
+      }
+    }
+
+    // vCard (.vcf) Dynamic File Generation and iPhone Saver with both Work and Cell Phone
+    function downloadVCard() {
+      const name = document.getElementById('fullName').value || 'Contact';
+      const title = document.getElementById('jobTitle').value || '';
+      const company = document.getElementById('company').value || '';
+      const cellPhone = document.getElementById('cellPhone').value || '';
+      const workPhone = document.getElementById('workPhone').value || '';
+      const email = document.getElementById('email').value || '';
+      const website = document.getElementById('website').value || '';
+      const address = document.getElementById('address').value || '';
+      const tagline = document.getElementById('tagline').value || '';
+
+      // Split name into First and Last Name for vCard formatting
+      const nameParts = name.trim().split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      // Construct vCard 3.0 Standard Content with CELL and WORK phones
+      let vCardContent = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        `N:${lastName};${firstName};;;`,
+        `FN:${name}`,
+        company ? `ORG:${company}` : '',
+        title ? `TITLE:${title}` : '',
+        cellPhone ? `TEL;TYPE=CELL,VOICE:${cellPhone}` : '',
+        workPhone ? `TEL;TYPE=WORK,VOICE:${workPhone}` : '',
+        email ? `EMAIL;TYPE=INTERNET,PREF:${email}` : '',
+        website ? `URL:${website}` : '',
+        address ? `ADR;TYPE=WORK,PREF:;;${address};;;;` : '',
+        tagline ? `NOTE:${tagline}` : '',
+        'END:VCARD'
+      ].filter(Boolean).join('\r\n');
+
+      // Create Blob with exact vCard MIME type for iOS/Android recognition
+      const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      const sanitizedFilename = name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+      link.setAttribute('download', `${sanitizedFilename}_contact.vcf`);
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast('vCard downloaded! Open file to save on iPhone.');
+    }
+
+    // QR Code Generation Logic with dual phones
+    function generateVCardDataString() {
+      const name = document.getElementById('fullName').value || 'Contact';
+      const cellPhone = document.getElementById('cellPhone').value || '';
+      const workPhone = document.getElementById('workPhone').value || '';
+      const email = document.getElementById('email').value || '';
+      const website = document.getElementById('website').value || '';
+      const company = document.getElementById('company').value || '';
+
+      return `BEGIN:VCARD\nVERSION:3.0\nN:${name}\nFN:${name}\nORG:${company}${cellPhone ? `\nTEL;TYPE=CELL:${cellPhone}` : ''}${workPhone ? `\nTEL;TYPE=WORK:${workPhone}` : ''}\nEMAIL:${email}\nURL:${website}\nEND:VCARD`;
+    }
+
+    let qrCodeObj = null;
+
+    function openQRModal() {
+      const qrContainer = document.getElementById('qrcode-canvas');
+      qrContainer.innerHTML = ''; 
+
+      const qrData = generateVCardDataString();
+      const name = document.getElementById('fullName').value || 'Contact';
+      document.getElementById('qr-name-label').innerText = `${name}'s Digital Card`;
+
+      qrCodeObj = new QRCode(qrContainer, {
+        text: qrData,
+        width: 180,
+        height: 180,
+        colorDark: "#0f172a",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      const modal = document.getElementById('qr-modal');
+      const modalContent = document.getElementById('qr-modal-content');
+      
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        modalContent.classList.remove('scale-95');
+      }, 10);
+    }
+
+    function closeQRModal() {
+      const modal = document.getElementById('qr-modal');
+      const modalContent = document.getElementById('qr-modal-content');
+      
+      modal.classList.add('opacity-0');
+      modalContent.classList.add('scale-95');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
+    // Native Web Share API or Clipboard Fallback
+    async function shareNativeCard() {
+      const name = document.getElementById('fullName').value || 'Digital Business Card';
+      const title = document.getElementById('jobTitle').value || '';
+      const company = document.getElementById('company').value || '';
+      const cellPhone = document.getElementById('cellPhone').value || '';
+      const workPhone = document.getElementById('workPhone').value || '';
+      const email = document.getElementById('email').value || '';
+      const website = document.getElementById('website').value || '';
+
+      const shareData = {
+        title: `${name} - ${title}`,
+        text: `Digital Business Card for ${name} (${company})\nMobile: ${cellPhone}\nWork: ${workPhone}\nEmail: ${email}`,
+        url: website || window.location.href,
+      };
+
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+          showToast('Card shared successfully!');
+        } catch (err) {
+          if (err.name !== 'AbortError') {
+            copyShareToClipboard(shareData.text);
+          }
+        }
+      } else {
+        copyShareToClipboard(shareData.text);
+      }
+    }
+
+    function copyShareToClipboard(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Card details copied to clipboard!');
+      } catch (err) {
+        showToast('Failed to copy text');
+      }
+      document.body.removeChild(textArea);
+    }
+
+    // Pre-filled Email Card Function
+    function emailCardSummary() {
+      const name = document.getElementById('fullName').value || 'Contact';
+      const title = document.getElementById('jobTitle').value || '';
+      const company = document.getElementById('company').value || '';
+      const cellPhone = document.getElementById('cellPhone').value || '';
+      const workPhone = document.getElementById('workPhone').value || '';
+      const email = document.getElementById('email').value || '';
+      const website = document.getElementById('website').value || '';
+      const address = document.getElementById('address').value || '';
+
+      const subject = encodeURIComponent(`Digital Business Card: ${name}`);
+      const bodyText = encodeURIComponent(
+        `Hi,\n\nHere are the contact details for ${name}:\n\n` +
+        `Name: ${name}\n` +
+        `Title: ${title}\n` +
+        `Company: ${company}\n` +
+        `Cell Phone: ${cellPhone}\n` +
+        `Work Phone: ${workPhone}\n` +
+        `Email: ${email}\n` +
+        `Website: ${website}\n` +
+        `Address: ${address}\n\n` +
+        `Sent via Digital Business Card Studio.`
+      );
+
+      window.location.href = `mailto:?subject=${subject}&body=${bodyText}`;
+    }
+
+    // Help & Wallet Modal Controls
+    function openHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        modal.classList.remove('opacity-0');
+      }, 10);
+    }
+
+    function closeHelpModal() {
+      const modal = document.getElementById('help-modal');
+      modal.classList.add('opacity-0');
+      setTimeout(() => {
+        modal.classList.add('hidden');
+      }, 200);
+    }
+
+    // Reset Form
+    function resetForm() {
+      document.getElementById('card-form').reset();
+      document.getElementById('fullName').value = '';
+      document.getElementById('jobTitle').value = '';
+      document.getElementById('company').value = '';
+      document.getElementById('cellPhone').value = '';
+      document.getElementById('workPhone').value = '';
+      document.getElementById('email').value = '';
+      document.getElementById('website').value = '';
+      document.getElementById('address').value = '';
+      document.getElementById('tagline').value = '';
+      document.getElementById('linkedin').value = '';
+      document.getElementById('twitter').value = '';
+      document.getElementById('github').value = '';
+      document.getElementById('avatarUrl').value = 'https://placehold.co/200x200/1e293b/ffffff?text=Avatar';
+      
+      updateCard();
+      showToast('Form reset to blank.');
+    }
+
+    // UI Toast Notification Helper
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      
+      toastMsg.innerText = message;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // Run initial update on window load
+    window.onload = function() {
+      updateCard();
+      setTheme('midnight');
+    };
+  </script>
+</body>
+</html>
